@@ -1,0 +1,31 @@
+ <a class="dropdown-item discharge"
+                                    //             data-toggle="modal" data-toggle="tooltip" title="Click to discharge patient" data-placement="right" data-target="#discharge" data-keyboard="false" data-backdrop="static"
+                                    //             data-id="{{ $inpatient->enccode}}"
+                                    //             data-hpercode="{{ $inpatient->hpercode}}"
+                                    //             data-licno="{{ $inpatient->licno}}"
+                                    //             data-patient="'.getpatientinfo($inpatient->hpercode).'"
+                                    //             href="#">Discharge</i>
+                                    // </a>
+
+
+//-----
+select
+	hprdate, 
+    DiffFromPrevious =
+	DateDiff ( DAY ,
+	  (
+		   SELECT 
+				top 1 hprdate 
+			FROM hpatroom x
+			WHERE x.hprdate < l.hprdate
+			AND x.enccode = 'ADM157282Sep302019140721'
+			ORDER BY x.hprdate  desc
+		) 	 ,  l.hprdate 
+	)  , 
+	r.rmrate 
+from hpatroom as l
+left join hbed as bed ON bed.bdintkey = l.bdintkey
+left join hrmacc as r On bed.rmaccikey = r.rmaccikey
+where enccode = 'ADM157282Sep302019140721'
+ORDER BY l.hprdate desc
+--//
