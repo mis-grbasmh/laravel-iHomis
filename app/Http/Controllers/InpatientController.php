@@ -121,7 +121,9 @@ class InpatientController extends Controller
                            </button>
                             <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuLink" x-placement="top-end" style="position: absolute; transform: translate3d(-122px, -341px, 0px); top: 0px; left: 0px; will-change: transform;" x-out-of-boundaries="">
                                <h6 class="dropdown-header">Select Action</h6>
-                                    <a class="dropdown-item btnCoversheet" data-toggle="tooltip" title="Click to view clinical cover sheet " data-placement="bottom" data-id="'.$enccode.'" data-coversheet="/admission/coversheet">Cover Sheet</a>
+                               <a class="dropdown-item btnCoversheet" data-toggle="tooltip" title="Click to view clinical cover sheet " data-placement="bottom" data-id="'.$enccode.'" data-coversheet="/admission/coversheet">Coversheet</a>
+                               <a class="dropdown-item btnClinicalAbstract" data-toggle="tooltip" title="Click to view clinical abstract " data-placement="bottom" data-id="'.$enccode.'" data-clinicalabstract="/admission/clinicalabstract">Clinical Abstract</a>
+
                                     <a class="dropdown-item btnAdmissionSlip" data-toggle="tooltip" title="Click to view admission slip " data-placement="bottom" data-id="'.$enccode.'" data-admissionslip="/admission/admissionslip">Admission Slip</a>
                                     <a class="dropdown-item btnAdmissionDoctors" data-toggle="tooltip" title="Click to view admission slip " data-placement="bottom" data-id="'.$enccode.'" data-admissiondoctor="/admission/admissionslip">View Doctors</a>
                                     <a class="dropdown-item btnAdmissionRooms" data-toggle="tooltip" title="Click to view admission rooms " data-placement="bottom" data-id="'.$enccode.'" data-admissionrooms="/admission/admissionslip">View Rooms</a>
@@ -332,6 +334,78 @@ class InpatientController extends Controller
         );
     }//end function edit
 
+
+
+    Public Function canceladmission(Request $request){
+        $inpatients =  Inpatients::Inpatient_canceladmission(Auth::user()->employeeid);
+
+        if (request()->ajax()) {
+            return Datatables::of($inpatients)
+            ->addColumn('admission', function($inpatient) {
+                return getFormattedDate($inpatient->admdate) .' at '. asDateTime($inpatient->admdate).'<br/><strong>'.$inpatient->wardname.'-'.$inpatient->rmname.'-'.$inpatient->bdname.'</strong><br/>
+                ';
+            })
+            ->addColumn('doctor', function($inpatient) {
+                return getdoctorinfo($inpatient->licno) .'<br/><small><strong>'. $inpatient->tsdesc.'</strong></small><br/>
+                ';
+            })
+            ->addColumn('patient',function ($inpatient){
+                return '<strong>'.getpatientinfo($inpatient->hpercode).'</strong><br/><small> '. getGender($inpatient->patsex).', '.number_format($inpatient->patage).' year(s) old <br/>
+                '.$inpatient->hpercode.'</small>';
+            })
+
+            ->addColumn('msstype',function ($inpatient){
+                $drugmeds = DB::table('hrxo')
+                ->join('hdmhdrprice', function($join)
+                {
+                    $join->on('hrxo.dmdcomb','=','hdmhdrprice.dmdcomb');
+                    $join->on('hrxo.dmdprdte','=','hdmhdrprice.dmdprdte');
+                })
+                ->select('hrxo.enccode',
+                DB::raw("qtyissued*dmduprice as amount"))
+                ->where('hrxo.enccode',$inpatient->enccode)
+                ->where('hrxo.rxostatus','A' )
+                ->orderby('hrxo.dmdcomb', 'ASC')
+                ->first();
+
+                $itemscharges = DB::table('hpatchrg')
+                ->join('hcharge','hcharge.chrgcode','hpatchrg.chargcode')
+                ->select('hpatchrg.enccode',DB::raw("pchrgqty*pchrgup as amount"))
+                ->where('hpatchrg.enccode',$inpatient->enccode)
+                ->orderby('hpatchrg.pcchrgdte','DESC')
+                ->first();
+                return '<small>Drugs and Meds. - Php '. number_format($drugmeds->amount,2).'</br>Charges - Php '. number_format($itemscharges->amount,2).'</small>'
+              ;
+            })
+            ->addColumn('clerk',function ($inpatient){
+                return getemployeeinfo($inpatient->admclerk);
+            })
+            ->addColumn('actions',function ($inpatient){
+                $enccode = str_replace("-","/",$inpatient->enccode);
+                return '
+                       <div class="dropdown">
+                           <button type="button" class="btn btn-link dropdown-toggle btn-icon" data-toggle="dropdown" aria-expanded="false">
+                               <i class="tim-icons icon-settings-gear-63"></i>
+                           </button>
+                            <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuLink" x-placement="top-end" style="position: absolute; transform: translate3d(-122px, -341px, 0px); top: 0px; left: 0px; will-change: transform;" x-out-of-boundaries="">
+                               <h6 class="dropdown-header">Select Action</h6>
+                                    <a class="dropdown-item btnCoversheet" data-toggle="tooltip" title="Click to view clinical cover sheet " data-placement="bottom" data-id="'.$enccode.'" data-coversheet="/admission/coversheet">Cover Sheet</a>
+                                    <a class="dropdown-item btnAdmissionSlip" data-toggle="tooltip" title="Click to view admission slip " data-placement="bottom" data-id="'.$enccode.'" data-admissionslip="/admission/admissionslip">Admission Slip</a>
+                                    <a class="dropdown-item btnAdmissionDoctors" data-toggle="tooltip" title="Click to view admission slip " data-placement="bottom" data-id="'.$enccode.'" data-admissiondoctor="/admission/admissionslip">View Doctors</a>
+                                    <a class="dropdown-item btnAdmissionRooms" data-toggle="tooltip" title="Click to view admission rooms " data-placement="bottom" data-id="'.$enccode.'" data-admissionrooms="/admission/admissionslip">View Rooms</a>
+                                    <a class="dropdown-item btnEdit" data-toggle="tooltip" data-placement="bottom" data-id="'.$enccode.'" data-edit="/admission/edit">Edit Admission</a>
+                                    <a class="dropdown-item btnDischarge" data-toggle="tooltip" title="Click to discharge patient" data-placement="bottom" data-id="'.$enccode.'" data-discharge="/admission/discharge">Discharge</a>
+
+
+                                </div>
+                        </div>';
+            })
+
+            ->rawColumns(['patient','admission','doctor','msstype','clerk','actions'])
+            ->make(true);
+    }
+    return view('transactions.admitting.admission_cancel');
+    }//end function canceladmission
 /**
      * Display a listing of the resource.
      *
@@ -569,7 +643,11 @@ return $output;
         return $output;
     }
 
-/**
+
+
+
+
+    /**
      * Display a listing of the resource.
      *
      * @return \Illuminate\Http\Response
@@ -740,9 +818,9 @@ table td, table th
 <td style="width: 30%; vertical-align: top; height: 18px;" colspan="5">ADDRESS<br/>
     <strong>'.$data->spaddr.'</strong></td>
 <td style="width: 30%; vertical-align: top; height: 18px;" colspan="7">TEL. NO.:<br/><strong>00000043</strong></td>
-</tr>
+</tr>\
 <tr style="height: 18px;">
-    <td style="vertical-align: bottom; height: 18px;" colspan="2">ADMISSION:<br/>
+    <td style="vertical-align: top; height: 18px;" colspan="2">ADMISSION:<br/>
         DATE: <strong>'.getFormattedDate($data->admdate).'</strong>
         <br/>
         TIME: <strong>'.asDateTime($data->admdate).'</strong>
@@ -752,9 +830,9 @@ table td, table th
     <br/>
     TIME:<strong> '.$disc_time.'</strong>
 </td>
-<td style="vertical-align: top; text-align: center; height: 18px;" colspan="1">TOTAL NO.<br/> OF DAYS <br/>
-     <strong>2 day(s)</strong></td>
-<td style="vertical-align: top; height: 18px;" colspan="11">ADMITTING PHYSICIAN:<br/><br/>
+<td style="vertical-align: top; text-align: center; height: 18px; font-size: 10px; colspan="1">TOTAL NO.<br/> OF DAYS <br/>
+     <strong><p style="font-size: 12px;">'.\Carbon\Carbon::parse($data->admdate)->diffInDays(\Carbon\Carbon::parse($data->disdate)).'</p></strong></td>
+<td style="vertical-align: top;" colspan="11">ADMITTING PHYSICIAN:<br/><br/>
     <strong>'.getdoctorinfo($data->licno).'</strong></td>
 
 </tr>
@@ -975,7 +1053,10 @@ MSS No.:<strong>'.$data->mssno.'<br/>&nbsp;
 
   Public function discharge(Request $request,$id){
     try{
-  $enccode  = str_replace("-","/",$id);
+
+
+
+        $enccode  = str_replace("-","/",$id);
   $data = Inpatients::where('enccode','=',$enccode)
       ->first();
           DB::table('hadmlog')
@@ -1040,7 +1121,7 @@ MSS No.:<strong>'.$data->mssno.'<br/>&nbsp;
                     $hencdiag->diagtext =  $request->input('diagtext');
                     $hencdiag->diagsubcat = $subcat;
                     $hencdiag->diagcode_ext= $request->input('diagcode_ext');
-                    $hencdiag->entryby = auth::user()->id;
+                    $hencdiag->entryby = Auth::user()->employeeid;
                     $hencdiag->user_id = auth::user()->id;
                     $hencdiag->save();
                }
@@ -1266,7 +1347,7 @@ MSS No.:<strong>'.$data->mssno.'<br/>&nbsp;
                             $hencdiag->diagtext = strtoupper($request->input('diagtext'));
                             $hencdiag->diagsubcat = mb_substr($request->input('diagcodeext'), 0, 3);
                             $hencdiag->diagcode_ext= $request->input('diagcodeext');
-                            $hencdiag->entryby = auth::user()->id;
+                            $hencdiag->entryby = Auth::user()->employeeid;
                             $hencdiag->user_id = auth::user()->id;
                             $hencdiag->save();
                         }else{//update final diagnosis
@@ -1449,20 +1530,37 @@ MSS No.:<strong>'.$data->mssno.'<br/>&nbsp;
              ->with('reasonsfortrans',$reasonsfortrans)
              ->with('diagnosis',$diagnosis)
              ->with('admissiontypes',$this->admissiontypes)
-             ->with('servicecasetypes',$this->servicecasetypes)
+            // ->with('servicecasetypes',$this->servicecasetypes())
              ->with('servicetypes',DB::table('htypser')->get());
              }
 
 
-    // public function Patient_rooms($id){
-    //
-        public function Patient_rooms(Request $request){
-            if($request->ajax())
 
-            {
-                $query = $request->get('query');
-                $enccode  = str_replace("-","/",$query);
-        $admissionrooms = Patientrooms::get_patientrooms($query);
+     public Function get_PatientRooms(Request $request){
+         if($request->ajax()){
+            $query = $request->get('query');
+            $enccode  = str_replace("-","/",$query);
+            $admissionrooms = Patientrooms::get_patientrooms($enccode);
+            if($admissionrooms->count() <> 0){
+                return Datatables::of($admissionrooms)
+                ->with('wards',Wards::all())
+                ->toJson();
+
+            }
+
+         }
+     }
+
+
+     public function Patient_rooms($id){
+    //
+        // public function Patient_rooms(Request $request){
+        //     if($request->ajax())
+
+        //     {
+        //         $query = $request->get('query');
+                $enccode  = str_replace("-","/",$id);
+        $admissionrooms = Patientrooms::get_patientrooms($enccode);
         //$hpercode='';
        // $admdiagnosis = Inpatients::getAdmissionbyId($enccode);
       //  $hpercode = $admissionrooms->hpercode;
@@ -1477,7 +1575,251 @@ MSS No.:<strong>'.$data->mssno.'<br/>&nbsp;
         return view('transactions.admitting.admission_rooms',compact('admissionrooms','enccode'))
         ->with('wards',Wards::all());
             }
+
+
+/**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function clinicalabstract_pdf($id){
+        $enccode = str_replace("-","/",$id);
+        $pdf=App::make('dompdf.wrapper');
+        $pdf->setPaper('short', 'portrait');
+       // $pdf->setPaper(array(0, 0, 612.00, 900.00),'landscape');
+        $pdf->loadHTML($this->convert_clinicalabstract_data_to_html($enccode));
+        return $pdf->stream();
     }
 
+    function convert_clinicalabstract_data_to_html($id)
+    {   $data = DB::table('hadmlog')
+        ->join('hperson','hperson.hpercode','hadmlog.hpercode')
+        ->join('hpatroom as A','A.enccode','hadmlog.enccode')
+        ->join('hbed','A.bdintkey','hbed.bdintkey')
+        ->join('hroom','hroom.rmintkey','A.rmintkey')
+        ->join('hward','hward.wardcode','A.wardcode' )
+        ->join('htypser','htypser.tscode','hadmlog.tscode')
+
+        ->where('hadmlog.enccode',$id)
+        ->first();
+
+        $hospitalinfo = DB::table('fhud_hospital')
+            ->join('hprov','hprov.provcode','fhud_hospital.provcode')
+            ->join('hcity','hcity.ctycode','fhud_hospital.ctycode')
+            ->join('hbrgy','hbrgy.bgycode','fhud_hospital.brgy')
+            ->where('hfhudcode',auth::user()->hosp_id)->first();
+            $chiefcomplaint="";
+            $history ="";
+            $chiefcomplaint = DB::table('hmrhisto')->where('histype','COMPL')
+            ->where('enccode',$id)
+            ->first();
+            if($chiefcomplaint){
+                $chiefcomplaint = $chiefcomplaint->history;
+            }
+
+            $historyillness = DB::table('hmrhisto')->where('histype','PRHIS')
+            ->where('enccode',$id)
+            ->orderby('datemod','DESC')
+            ->get();
+
+            $courseward = DB::table('hcrsward')
+            ->where('enccode',$id)
+            ->orderby('dtetake','ASC')
+            ->get();
+            $course='';
+            foreach($courseward as $key => $row){
+                $course = $course . trim($row->crseward).'<br/>';
+            }
+
+
+            //dd($course);
+            $history='';
+            if($historyillness){
+
+            foreach($historyillness as $key => $row){
+                $history = $history. trim($row->history);
+            }
+            }else{
+                $history="";
+            }
+            $operation_done='';
+            $operations = DB::table('hproclog')->where('hproclog.enccode',$id)
+            ->join('hproc','hproc.prikey','hproclog.prikey')
+            ->join('hprocm','hprocm.proccode','hproc.proccode')
+            ->first();
+            if($operations){
+                $operation_done = $operations->procdesc;
+                $operation_anesth = $operations->anestype;
+            }
+
+
+
+            $findx = Hencdiag::getPatientDiagnosis($id,'FINDX');
+            if($findx){
+                $finaldiagnosis = $findx->diagtext;
+                $final_icd = $findx->diagcode_ext;
+            }else{
+                $finaldiagnosis='';
+                $final_icd ='';
+            }
+
+        //     if($data->disdate){
+        //     $findx = hencdiag::where('enccode',$id)->where('tdcode','FINDX')->
+        //         orderby('encdate','DESC')->first();
+        //         if($findx){
+        //             $finaldiagnosis = $findx->admtxt;
+        //             $final_icd = $findx->diagcode_ext;
+        //         }
+        // }else{
+        //     $finaldiagnosis = '';
+        //     $final_icd = '';
+        // }
+
+        if($data->newold == 'N'){ $new = 'X';}else{$new = '&nbsp;&nbsp;';}
+        if($data->newold == 'O'){ $old = 'X';}else{$old = '&nbsp;&nbsp;';}
+        if($data->dispcode == 'DISCH'){ $discharge = 'X';}else{$discharge = '&nbsp;&nbsp;';}
+        if($data->dispcode == 'TRANS'){ $transfered = 'X';}else{$transfered = '&nbsp;&nbsp;';}
+        if($data->dispcode == 'DAMA'){ $dama = 'X';}else{$dama = '&nbsp;&nbsp;';}
+        if($data->dispcode == 'DIEDD'){ $diedd = 'X';}else{$diedd = '&nbsp;&nbsp;';}
+        if($data->dispcode == 'ABSC'){ $absconded = 'X';}else{ $absconded = '&nbsp;&nbsp;';}
+        if($data->dispcode == 'EXPIR'){ $expired = 'X';}else{ $expired = '&nbsp;&nbsp;';}
+
+        if($data->disdate){
+            $disc_date = getFormattedDate($data->disdate);
+            $disc_time = asDateTime($data->disdate);
+        }else{
+            $disc_date ='';
+            $disc_time = '';
+        }
+
+        if($data->condcode =='RECOV'){ $recovered = 'X'; }else{ $recovered = '&nbsp;&nbsp;';}
+        if($data->condcode =='DIENA'){ $diedna = 'X'; }else{ $diedna = '&nbsp;&nbsp;'; }
+        if($data->condcode =='IMPRO'){ $improved = 'X'; }else{ $improved = '&nbsp;&nbsp;'; }
+        if($data->condcode =='UNIMP'){ $unimproved = 'X'; }else{ $unimproved = '&nbsp;&nbsp;'; }
+        if($data->condcode =='DIEMI'){ $diemi = 'X'; }else{ $diemi = '&nbsp;&nbsp;'; }
+        if($data->condcode =='DIENA'){ $diena = 'X'; }else{ $diena = '&nbsp;&nbsp;'; }
+        if($data->condcode =='DIEPO'){ $diepo = 'X'; }else{ $diepo = '&nbsp;&nbsp;'; }
+        if($data->condcode =='DPONA'){ $dpona = 'X'; }else{ $dpona = '&nbsp;&nbsp;'; }
+
+        $output='
+<style>
+    body {font-family: sans-serif; margin: 0; text-align: justify; font-size: 0.8em;}
+    p {text-align: justify; margin-left: 5px;margin-right: 5px; margin-top: 5px; margin-bottom: 5px; padding-left: 0px;}
+    @page { margin:20px;
+}
+
+table td, table th
+{
+    padding-left: 3px;
+}
+
+.noline td{
+    border-bottom: 1px solid white;
+    }
+        .border-bottom{
+    border-bottom: 1px solid black;
+    }
+    .noborder{
+    border: 1px solid white;
+    }
+      .noborder-left{
+    border-left: 1px solid white;
+    }
+          .noborder-right{
+    border-right: 1px solid white;
+    }
+          .noborder-bottom{
+    border-bottom: 1px solid white;
+    }
+</style>
+        <table style="border-collapse: collapse; width: 100%; height: 100px;" border="1">
+        <tbody style="font-size:12px">
+        <tr style="height: 18px;">
+            <td class="noline" style="vertical-align: top;  border-right: 1px solid white;border-top: 1px solid white;border-left: 1px solid white; " colspan="4"><p style="text-align: center;">Republic of the Philippines<br/>
+                PROVINCE OF ILOCOS NORTE<br/>
+                Laoag City<br/>
+                <strong>'.$hospitalinfo->hfhudname.'</strong><br/>
+                PHIC <em>Accredited Healthcare Provider<br/>
+                '.$hospitalinfo->address.', '.$hospitalinfo->bgyname.', '.$hospitalinfo->ctyname.' Philippines, 2900<br/>
+                Tel No. (677)600-2360; (677)770-4152 TO 54;</em></p></td>
+        </tr>
+        <tr style="height: 18px;">
+        <th  height: 5px; text-align: center; vertical-align: top;" colspan="1" scope="row">
+            <h2 style="text-align: center;"><strong><span style="color: #ffcc00;">CLINICAL ABSTRACT</span></strong></h2>
+            </th>
+            <td style="width: 40%; vertical-align: top; height: 18px;" colspan="3"><p>DATE RECEIVED:</p></td>
+        </tr>
+        <tr style="height: 54px;">
+            <td style="width: 60%; height: 10px; vertical-align: top;" colspan="1"><p>Name of Hospital/Ambulatory Clinic</p></td>
+            <td style="width: 40%; vertical-align: top;" colspan="3"><p>Health Record No.: '.$data->hpercode.'</p></td>
+        </tr>
+        <tr style="height: 54px;">
+            <td style="width: 60%; height: 10px; vertical-align: top;" rowspan="2"><p style=" font-size:14px; text-align:center;"><strong>'.$hospitalinfo->hfhudname.'</strong></p></td>
+            <td style="width: 40%; vertical-align: top;" colspan="3"><p>Admission Date: '.getformatteddate($data->admdate).'</p></td>
+        </tr>
+        <tr style="height: 54px;">
+
+            <td style="width: 40%; vertical-align: top;" colspan="3"><p>Accreditation No.: '.$hospitalinfo->accreno.'</p></td>
+        </tr>
+        <tr style="height: 54px;">
+            <td style="width: 60%; height: 10px; vertical-align: top;" colspan="1"><p>Address of Hospital/Ambulatory Clinic: '.$hospitalinfo->address.'</p></td>
+            <td style="width: 40%; vertical-align: top;" colspan="3"><p>Barangay: '.$hospitalinfo->bgyname.'</p></td>
+        </tr>
+        <tr style="height: 54px;">
+            <td style="width: 60%; vertical-align: top;"><p>Municipality/City:'.$hospitalinfo->ctyname.'</p></td>
+            <td style="width: 25%; vertical-align: top;"><p style="text-align:left;">Province: '.$hospitalinfo->provname.'</p></td>
+            <td style="width: 10%; vertical-align: top;" colspan="2"><p>Zip Code: '.$hospitalinfo->ctyzipcode.'</p></td>
+        </tr>
+        <tr style="height: 54px;">
+            <td style="width: 60%; height: 10px; vertical-align: top;" colspan="1"><p>Patient Name:</p></td>
+            <td style="width: 20%; vertical-align: top;"><p>2. Age: '.number_format($data->patage).'</p></td>
+            <td style="width: 20%; vertical-align: top;" colspan="2"><p>3. Sex: '.$data->patsex.'</p></td>
+        </tr>
+        <tr style="height: 54px;">
+            <td style="width: 60%; height: 10px; vertical-align: top;" colspan="1"><p>Last Name: '.$data->patlast.'</p></td>
+            <td style="width: 20%; border-bottom: 1px solid white; vertical-align: top;" colspan="3"><p>4.</p></td>
+        </tr>
+        <tr style="height: 54px;">
+            <td style="width: 60%; height: 10px; vertical-align: top;" colspan="1"><p>First Name: '.$data->patfirst.'</p></td>
+            <td style="width: 40%; border-top: 1px solid white; vertical-align: bottom" rowspan="2" colspan="3"><p style="text-align: center;">
+                <strong><span style="text-decoration: underline;">&nbsp;&nbsp;&nbsp;'.getdoctorinfo($data->licno).'&nbsp;&nbsp;&nbsp;</span></strong>
+            <br/> <em>Printed name and Signature of Physician</em></p></td>
+        </tr>
+        <tr style="height: 54px;">
+            <td style="width: 60%; height: 10px; vertical-align: top;" colspan="1"><p>Middle Name: '.$data->patmiddle.'</p></td>
+        </tr>
+        <tr style="height: 18px;">
+            <td style="vertical-align: top;" colspan="4"><p>5. <strong>Diagnosis:</strong> '.$finaldiagnosis.'</p></td>
+        </tr>
+        <tr style="height: 18px;">
+            <td style="vertical-align: top;" colspan="4"><p>6. <strong>Chief Complaint: </strong> '.$chiefcomplaint.'</p></td>
+        </tr>
+        <tr style="height: 18px;">
+            <td style="vertical-align: top;" colspan="4"><p>6. <strong>Brief History:</strong> '.$history.'</p></td>
+        </tr>
+        <tr style="height: 18px;">
+            <td style="vertical-align: top;" colspan="4"><p>6. <strong>Physical Examination:</strong><br/></p></td>
+        </tr>
+        <tr style="height: 18px;">
+            <td style="vertical-align: top;" colspan="4"><p>10. <strong>Course in the Ward:</strong> '.$course.'</p></td>
+        </tr>
+        <tr style="height: 18px;">
+            <td style="vertical-align: top;" colspan="4"><p>11. <strong>Pertinent Laboratory and Diagnosic Findings (Urinalysis, CBC, XRay, Biopsy, Fecalysis, etc):</strong></br></p></td>
+        </tr>
+        <tr style="height: 18px;">
+            <td style="vertical-align: top;" colspan="4"><p>12. <strong>Operation Performed:</strong></br>'.$operation_done.'</p></td>
+        </tr>
+        <tr style="height: 54px;">
+            <td style="width: 40%; height: 10px; vertical-align: top;" colspan="1"><p>Date of Operation</p></td>
+            <td style="width: 60%; vertical-align: top;" colspan="3"><p>Anesthesia: '.$data->hpercode.'</p></td>
+        </tr>
+
+        </tbody>
+        </table>
+        <p style="font-size:9px"><em>Report generated by i-Homis WEB 1.0</em></p>
+        ';
+
+        return $output;
+    }
 
 }

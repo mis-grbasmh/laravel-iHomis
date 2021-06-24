@@ -85,6 +85,7 @@ class WardController extends Controller
                                         <a class="dropdown-item"   href="#" onclick=patientcharges("'.$enccode.'") title="Click to do view Patient Charges">Patient Charges</a>
                                         <a class="dropdown-item"   href="#" onclick=doctorsorder("'.$enccode.'") title="Click to do view Doctors Order">Doctors Order</a>
                                         <a class="dropdown-item"   href="#" onclick=patientdoctors("'.$enccode.'") title="Click to do view Doctors">View Doctor</a>
+                                        <a class="dropdown-item btnViewRooms" data-toggle="tooltip" title="Click to view admission rooms" data-placement="bottom" data-id="'.$enccode.'" data-viewrooms="/admission/rooms">View Rooms(New)</a>
                                         <a class="dropdown-item btnDischarge" data-toggle="tooltip" title="Click to discharge patient" data-placement="bottom" data-id="'.$enccode.'" data-discharge="/admission/discharge">Discharge</a>
                                     </div>
                             </div>';

@@ -84,7 +84,7 @@
        ],
        drawCallback: function (response) {
                    $('#total_sum').html(response.json.totalamt);
-                   console.log(response.json.totalamt);
+                //   console.log(response.json.totalamt);
                  //   alert(response.json.total);
                 }
     });
@@ -133,9 +133,6 @@
                    console.log(response.json.totalamt);
                  //   alert(response.json.total);
                 }
-
-
-
         });
 
     }//ajax

@@ -116,12 +116,14 @@
         destroy: true,
         scrollX:true,
         scrollY:true,
+        "lengthMenu": [
+                                    [30, 50, 100, -1], //page length select box option values
+                                    [30, 50, 100, "All"]],//page length select box option Text
         columnDefs: [{
         targets: [0],
+
         className: 'nw'
         }],
-        processing: true,
-        serverSide: true,
         "ajax": {
            url: url,
           method:'GET',
@@ -140,7 +142,7 @@
               { "data": "clerk" },
               { "data": "actions" }
          ]
-                  });
+      });
                  }
   </script>
    <script>
@@ -357,13 +359,23 @@ function printInpatientsList(){
               document.location.href=url;
     });
 
+    //View Clinical Abstract
+    $('#inpatientsTable').on('click','.btnClinicalAbstract[data-clinicalabstract]',function(e){
+        e.preventDefault();
+        var id =$(this).data('id');
+        var res = id.split('/').join('-');
+        var url ='{{ route("admitting.clinicalabstract", ":id")}}';
+              url = url.replace(':id', res);
+              document.location.href=url;
+    });
+
      //View Clinical COver Sheet
      $('#inpatientsTable').on('click','.btnCoversheet[data-coversheet]',function(e){
         e.preventDefault();
       //  alert(me);
         var id =$(this).data('id');
         var res = id.split('/').join('-');
-        var url ='{{ route("admission.coversheet", ":id")}}';
+        var url ='{{ route("admitting.coversheet", ":id")}}';
               url = url.replace(':id', res);
               document.location.href=url;
     });

@@ -16,7 +16,7 @@
                         </div>
                     </div>
                 </div>
-                
+
 
                 <div class="card-body">
                     @include('alerts.success')
@@ -28,24 +28,25 @@
                                 <th>OR #</th>
                                 <th>Certificate No.</th>
                                 <th>Type</th>
+                                <th>Patient Name</th>
                                 <th>Requested By</th>
                                 <th>Amount</th>
                                 <th>Reference</th>
-                                
                                 <th></th>
                             </thead>
                             <tbody>
-                                 @foreach ($transactions as $transaction) 
+                                 @foreach ($transactions as $transaction)
                                     <tr>
                                         <td>{{ date('d-m-y', strtotime($transaction->dateasof)) }}</td>
                                         <td>{{ $transaction->orno}} </td>
                                         <td>{{ $transaction->certno}} </td>
                                         <td>{{ $transaction->certype}} </td>
+                                        <td>{{ getpatientname($transaction->hpercode)}} </td>
                                         <td>{{ $transaction->reqper}} </td>
                                         <td>{{ $transaction->relto}} </td>
                                         <td>{{ $transaction->purpose}} </td>
-                                    
-                                    
+
+
                                         {{-- <td>
                                             <a href="{{ route('transactions.type', ['type' => $transaction->type]) }}">{{ $transactionname[$transaction->type] }}</a>
                                         </td>
@@ -97,7 +98,7 @@
                                             @endif
                                         </td>
                                     </tr>
-                                @endforeach 
+                                @endforeach
                             </tbody>
                         </table>
                     </div>

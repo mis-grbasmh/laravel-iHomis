@@ -24,7 +24,7 @@
                                         <label><strong>Select Date Discharge Date:</strong></label>
                                     </div>
                                 </div>
-                                
+
                                 <div class="col-sm-8">
                                     <div class="form-group">
                                         <input type="date" id="date2" name="disdate" onchange="handler(event);" value="{{ old('date', $date) }}" class="form-control floating-label" step="any" required>
@@ -41,10 +41,10 @@
                     </div>
                 </div>
                 <hr/>
-               
+
                 <div class="card-body ">
-                    @include('alerts.success') 
-                 <div class="table-responsive">      
+                    @include('alerts.success')
+                 <div class="table-responsive">
                     <table id="daily_discharges" class="display" style="width:100%" >
                                 <thead class=" text-primary">
                                 <th class="text-center" style="display:none;"></th>
@@ -61,13 +61,13 @@
                             </thead>
                             <tbody>
                                 @foreach($discharges as $key => $row)
-                             
+
                                 @php
                                     $dispositiontype='';
                                     foreach($dispositions as $dispkey=>$disposition){
                                        if($dispkey == $row->dispcode){
                                            $dispositiontype = $disposition;
-                                       }  
+                                       }
                                     }
                                 @endphp
                                 <tr>
@@ -81,7 +81,7 @@
                                             <strong>{{getFormattedDate($row->disdate)}}</strong>
                                         </td>
                                         <td class="text-center"><strong>{{$row->wardname}} / {{ $row->rmname}} / {{$row->bdname}}</strong>
-                                        
+
                                             <br/>  <span class="badge badge-primary">{{$row->tacode}}</span></td>
                                         <td class="text-center">
                                         {{ \Carbon\Carbon::parse($row->admdate)->diffInDays(\Carbon\Carbon::parse($row->disdate))+1}} day(s)</td>
@@ -94,25 +94,25 @@
                                         DR. {{ getdoctorinfo($row->licno)}}
                                         <br/><small>{{ $row->tsdesc}}</small>
                                         <br/><span class="badge badge-info">{{$row->hsepriv}}</span>
-                                        
+
                                     </td>
                                     <td>
                                         {{-- {{GetemployeeinfobyID($row->user_id)}} --}}
-                                        
+
                                     </td>
                                     <td class="text-center">
-                                        @if(in_array(auth()->user()->roles->first()->name, ['Admin', 'Medical Records'])) 
+                                        @if(in_array(auth()->user()->roles->first()->name, ['Admin', 'Medical Records']))
                                         <div class="dropdown">
                                             <button type="button" class="btn btn-link dropdown-toggle btn-icon" data-toggle="dropdown" aria-expanded="false">
                                              <i class="tim-icons icon-settings-gear-63"></i>
                                             </button>
- 
+
                                             <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuLink" x-placement="top-end" style="position: absolute; transform: translate3d(-122px, -341px, 0px); top: 0px; left: 0px; will-change: transform;" x-out-of-boundaries="">
                                                 <a class="dropdown-item" href="#" title="Click to do add Patient Charges" onclick="undodischarge('{{$row->enccode}}');return false;">Undo Discharge</a>
-                                                
+
                                                 <a data-toggle="modal" data-id="{{ $row->enccode}}" data-hpercode="{{ $row->hpercode}}" data-licno="{{ $row->licno}}" data-patient="{{getpatientinfo($row->hpercode)}}" href="#"  data-target="#editdischarge" class="dropdown-item editdischarge">Edit Discharge Date</i></a>
                                                 <a class="dropdown-item btnEdit" data-toggle="tooltip" data-placement="bottom"  data-id="{{$row->enccode}}" data-edit="/admission/edit">Edit Admission</a>
-                                                <a class="dropdown-item btnCoversheet" data-toggle="tooltip" title="Click to view clinical cover sheet " data-placement="bottom" data-id="{{$row->enccode}}" data-coversheet="/admission/coversheet">Cover Sheet</a>                                
+                                                <a class="dropdown-item btnCoversheet" data-toggle="tooltip" title="Click to view clinical cover sheet " data-placement="bottom" data-id="{{$row->enccode}}" data-coversheet="/admission/coversheet">Cover Sheet</a>
                                             </div>
                                         </div>
                                         @endif
@@ -123,13 +123,13 @@
                         </table>
                         {{-- <div class="card-footer py-4">
                             <nav class="d-flex justify-content-end" aria-label="...">
-                            {{ $discharges->links() }}  
+                            {{ $discharges->links() }}
                             </nav>
                         </div> --}}
                     </div>
                 </div>
             </div>
-            
+
                    <!-- start editmodal-->
 <div class="modal fade" tabindex="-1" data-backdrop="static" role="dialog" id="modalEditAdmission" aria-labelledby="editModal" aria-hidden="true">
     @include('modals.admission_edit')
@@ -142,13 +142,13 @@
                   if(query){
                             var url = '{{ route("dailydischarges", ":id") }}';
                             url = url.replace(':id', query);
-                            document.location.href=url;      
+                            document.location.href=url;
                          }
                          else{
                              alert('Please ')
                          }
-                
-                
+
+
                 }
                 </script>
   <script>
@@ -175,10 +175,10 @@
  } );
  </script>
 
- 
+
 <script>
     $('#daily_discharges tbody').on('click', 'tr', function () {
-        var currentRow=$(this).closest("tr"); 
+        var currentRow=$(this).closest("tr");
         var history=currentRow.find("td:eq(0)").text();
         // alert(history);
         var query = history;
@@ -186,7 +186,7 @@
         if(query){
             var res = query.split('/').join('-');
             url = url.replace(':id', res);
-            document.location.href=url;      
+            document.location.href=url;
          }
          else{
              alert('Please ')
@@ -198,11 +198,11 @@
         e.preventDefault();
         var id =$(this).data('id');
         var res = id.split('/').join('-');
-        var url ='{{ route("admission.coversheet", ":id")}}';
+        var url ='{{ route("admitting.coversheet", ":id")}}';
               url = url.replace(':id', res);
               document.location.href=url;
     });
-   
+
  </script>
  <script>
       $('#daily_discharges').on('click','.btnEdit[data-edit]',function(e){
@@ -220,7 +220,7 @@
               cancelButtonText: "Cancel",
               closeOnConfirm: true,
               closeOnCancel: true
-            }, 
+            },
             function(isConfirm) {
             if (isConfirm) {
                 $.ajax({
@@ -239,8 +239,8 @@
                             $('#edit_licno').val(data.licno);
                            // $doctor.append('<option selected value=' + data.licno + '>' + data.doctor + '</option>');
                            // var $admittype = $('#edit_tacode');
-                           
-                           
+
+
                            // $admittype.append('<option selected value=' + data.tacode + '>' + data.admissiontype + '</option>');
                             $('#edit_hsepriv').val(data.hsepriv);
                             //var $servicetype = $('#edit_hsepriv');
@@ -253,7 +253,7 @@
                             show: true,
                             });
                         }
-    
+
                     });
                 }
         });
@@ -267,7 +267,7 @@
        var res = query.split('/').join('-');
         var url = '{{ route("admission.update", ":id") }}';
                 url = url.replace(':id', res);
-               
+
         var frm = $('#frmDataEdit');
         swal({
               title: "Are you sure want to update Admission?",
@@ -278,7 +278,7 @@
               cancelButtonText: "Cancel",
               closeOnConfirm: true,
               closeOnCancel: true
-            }, 
+            },
             function(isConfirm) {
             if (isConfirm) {
                 $.ajax({
@@ -299,7 +299,7 @@
             error:function(err){
                 console.log(err);
             }
-            
+
             });
             }
         });

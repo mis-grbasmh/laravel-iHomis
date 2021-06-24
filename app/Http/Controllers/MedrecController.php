@@ -26,14 +26,21 @@ class MedrecController extends Controller
     public function index($id='')
     {
         $transactions = DB::table('hcert')
-         ->leftjoin('hpay','hcert.enccode','hpay.enccode')
-        ->select('hcert.dateasof','hcert.enccode','hcert.hpercode','hcert.upicode','hcert.certno','hcert.certype','hcert.reqper'
+
+            ->join('henctr','henctr.enccode','hcert.enccode')
+         ->join('hpay','hcert.enccode','hpay.enccode','LEFT OUTER')
+
+        ->select('hcert.dateasof','hcert.enccode','hcert.hpercode','hcert.upicode','hcert.certno','hcert.certype','henctr.toecode','hcert.reqper'
         ,'hcert.relto','hcert.purpose','hcert.entryby','hcert.releaseby','hcert.releasedate','hpay.acctno',
-         'hpay.orno','hpay.ordate','hpay.amt','hpay.curcode','hpay.paytype','hpay.paycode','hpay.bal','hpay.payrem','hpay.entryby AS cashier')
+         'hpay.orno','hpay.ordate','hpay.chrgcode','hpay.amt','hpay.curcode','hpay.paytype','hpay.paycode','hpay.bal','hpay.payrem','hpay.entryby AS cashier')
+
 
         // ->select('hcert.enccode','hcert.hpercode','hcert.dateasof','hcert.certno','hcert.certype','hcert.reqper','hcert.relto','hcert.purpose','hpay.orno')
         // ->join('hpay','hpay.orno','hcert.orno','left outer')
-       ->wherenull('hcert.releasedate')
+    //    ->wherenull('hcert.releasedate')
+      //  ->wheremonth('henctr.encdate','01')
+       // ->whereyear('henctr.encdate','2019')
+        ->where('hpay.chrgcode','MISCE')
 
     //    ->orwhere('hcert.certno','<>','NULL')
             ->paginate(25);
@@ -85,7 +92,28 @@ public function show($id){
 function convert_medicalrecord_to_html($id){
     {
 
-        $result = DB::table('henctr')->where('henctr.enccode',$id)->first();
+                $er = emergencyroom::where('herlog.enccode', '=', ''.trim($id).'')
+                    ->join('htypser','herlog.tscode','htypser.tscode')
+                    ->select('enccode','tsdesc as service','erdate as encdate','hpercode','erdtedis as dischargedate','licno as doctor',
+                    DB::raw("'ER' as type"));
+                $opd = Outpatient::where('hopdlog.enccode', '=', ''.trim($id).'')
+                    ->join('htypser','hopdlog.tscode','htypser.tscode')
+                    ->select('enccode','tsdesc as service','opddate as encdate','hpercode','opddtedis as dischargedate','licno as doctor',
+                    DB::raw("'OPD' as type"));
+                $data    = Inpatients::where('enccode', '=', ''.trim($id).'')
+                    ->join('htypser','hadmlog.tscode','htypser.tscode')
+                    ->select('enccode','tsdesc as service','admdate as encdate','hpercode','disdate as dischargedate','licno as doctor',
+                    DB::raw("'ADM' as type"))
+                    ->union($er)
+		            ->union($opd)
+                    ->orderby('encdate','DESC')
+                    ->first();
+
+
+
+        $result = DB::table('hcert')
+        ->select('hcert.certype')
+        ->where('hcert.enccode',$id)->first();
 
         $operations = getOperationproc($id);
         if($operations){
@@ -94,31 +122,66 @@ function convert_medicalrecord_to_html($id){
             $operation_done='None';
         }
 
-        $case = $result->toecode;
+        $case = $result->certype;
         switch($case){
-            case   'OPD'    :
+            case 'OPD'    :
                 $type = 'CLINICAL DIAGNOSIS';
-                $data = Outpatient::where('hopdlog.enccode',$id)
-                        ->join('hencdiag','hencdiag.enccode','hopdlog.enccode')
-                        ->select('hopdlog.enccode','opddate as encdate','hopdlog.hpercode','hopdlog.patage','opddtedis as dischargedate','hopdlog.licno as doctor',DB::raw("'OPD' as type"))
-                        ->first();
+                // $data = Outpatient::where('hopdlog.enccode',$id)
+                //         ->join('hencdiag','hencdiag.enccode','hopdlog.enccode')
+                //         ->select('hencdiag.diagtext','hopdlog.enccode','opddate as encdate','hopdlog.hpercode','hopdlog.patage','opddtedis as dischargedate','hopdlog.licno as doctor',DB::raw("'OPD' as type"))
+                //         ->where('hencdiag.tdcode','CLIDI')
+                //         ->where('hencdiag.primediag','Y')
+                //         ->first();
+                        $transtype ='was seen and examined at the Outpatient Department of this hospital on '.getLongDateFormat($data->encdate).' at '.asDateTime($data->encdate);
                 break;
-            case   'ER'    :
+            case 'ER'    :
                 $type = 'CLINICAL DIAGNOSIS';
-                $data = Emergencyroom::where('herlog.enccode',$id)
-                ->join('hencdiag','hencdiag.enccode','herlog.enccode')
-                ->select('herlog.enccode','erdate as encdate','herlog.hpercode','herlog.patage','erdtedis as dischargedate','herlog.licno as doctor', DB::raw("'ER' as type"))
-                ->first();
+                // $data = Emergencyroom::where('herlog.enccode',$id)
+                // ->select('herlog.enccode','herlog.erdate as encdate','herlog.hpercode','herlog.patage','erdtedis as dischargedate','herlog.licno as doctor', DB::raw("'ER' as type"))
+                // ->first();
+                $transtype ='was seen and examined at the Emergency Room of this hospital on '.getLongDateFormat($data->encdate) .' at '.asDateTime($data->encdate);
                 break;
+                case   'ERADM'    :
+                    $type = 'CLINICAL DIAGNOSIS';
+
+                    // $data = Emergencyroom::where('herlog.enccode',$id)
+                    // ->join('hencdiag','hencdiag.enccode','herlog.enccode')
+                    // ->select('herlog.enccode','herlog.erdate as encdate','herlog.hpercode','herlog.patage','erdtedis as dischargedate','herlog.licno as doctor', DB::raw("'ER' as type"))
+                    // ->where('hencdiag.tdcode','CLIDI')
+                    // ->where('hencdiag.primediag','Y')
+                    // ->first();
+                    $transtype ='was seen and examined at the Emergency Room of this hospital on '.getLongDateFormat($data->encdate) .' at '.asDateTime($data->encdate);
+                    break;
+                case   'ADM'    :
+                    $type = 'ADMITTING DIAGNOSIS';
+                    // $data = Inpatients::where('hadmlog.enccode',$id)
+                    // ->select('hadmlog.enccode','hadmlog.admdate as encdate','hadmlog.hpercode','hadmlog.patage','disdate as dischargedate','hadmlog.licno as doctor', DB::raw("'ADM' as type"))
+                    // ->first();
+                    $transtype ='was seen and examined at the Emergency Room of this hospital on '.getLongDateFormat($data->encdate) .' at '.asDateTime($data->encdate);
+
+              $transtype ='was seen and examined at the Emergency Room of this hospital on '.getLongDateFormat($data->encdate) .' at '.asDateTime($data->encdate);
+                case   'DISCH'    :
+                    $type = 'FINAL DIAGNOSIS';
+                    // $data = Emergencyroom::where('herlog.enccode',$id)
+                    // ->join('hencdiag','hencdiag.enccode','herlog.enccode')
+                    // ->select('herlog.enccode','erdate as encdate','herlog.hpercode','herlog.patage','erdtedis as dischargedate','herlog.licno as doctor', DB::raw("'ER' as type"))
+                    // ->first();
+
+                    $transtype ='was confined in this hospital on '.getLongDateFormat($data->encdate) .' at '.asDateTime($data->encdate);
+                    break;
             default:
             $type = 'ADMITTING DIAGNOSIS';
-            $data = Inpatients::where('hadmlog.enccode',$id)
-            ->join('hencdiag','hencdiag.enccode','hadmlog.enccode')
-            ->join('hcert','hcert.enccode','hadmlog.enccode')
-            ->select('hadmlog.enccode','admdate as encdate','hadmlog.hpercode','hadmlog.patage','disdate as dischargedate','hadmlog.licno as doctor', DB::raw("'ER' as type"),
-            'hencdiag.diagtext','hcert.reqper','hcert.purpose')
-            ->where('hencdiag.tdcode','ADMDX')
-            ->first();
+            // $data = Inpatients::where('hadmlog.enccode',$id)
+            // ->join('hencdiag', function($join)
+            // {
+            //     $join->on('hencdiag.enccode','=','hadmlog.enccode');
+            //     $join->on('hencdiag.hpercode','=','hadmlog.hpercode');
+            // })
+            // // ->join('hencdiag','hencdiag.enccode','hadmlog.enccode')
+            // ->select('hadmlog.enccode','hadmlog.admdate as encdate','hadmlog.hpercode','hadmlog.patage','disdate as dischargedate','hadmlog.licno as doctor', DB::raw("'ADM' as type"))
+            // ->where('hencdiag.tdcode','ADMDX')
+            // ->first();
+            $transtype ='was seen and examined at the Emergency Room of this hospital on '.getLongDateFormat($data->encdate) .' at '.asDateTime($data->encdate);
               break;
            }
 
@@ -153,11 +216,14 @@ function convert_medicalrecord_to_html($id){
  </style>
 
     <p style="text-align: center;text-decoration: underline;font-size: 14pt;"><span style="text-decoration: underline;"><strong>MEDICAL CERTIFICATE</strong></p>
+    <p style="text-align: right;text-decoration: underline;font-size: 10pt;"><span style="text-decoration: underline;"><strong>Certificate No.</strong></p>
+    <p style="text-align: right;text-decoration: underline;font-size: 10pt;"><span style="text-decoration: underline;"><strong>Certificate No.</strong></p>
     <br/><br/>
     <p style="text-align: justify;">TO WHOM IT MAY CONCERN:</p>
+    '.$result->certype.'
     <br/>
-    <p style="text-align: justify;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;This is to certify that <strong>VENANCIO R. ADRIANO</strong>, <strong>'.number_format($data->patage).'</strong> years old, <strong>male</strong>, <strong>married</strong>, and a resident of
-    '.getpatientaddress($data->hpercode).', is currently confined in this hospital from '.getLongDateFormat($data->encdate).' at '.asDateTime($data->encdate).' to present due to:</p>
+    <p style="text-align: justify;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;This is to certify that <strong>'.getpatientname($data->hpercode).'</strong>,<strong>'.number_format($data->patage).'</strong> years old, <strong>'.$data->patsex.'</strong>, <strong>married</strong>, and a resident of
+    '.getpatientaddress($data->hpercode).', '.$transtype.' due to:</p>
     <br/>
 
     <p style="text-align: justify;"><em><strong>'.$type.' </strong></em></p>
@@ -169,11 +235,11 @@ function convert_medicalrecord_to_html($id){
     <p style="text-align: justify; padding-left: 40px;"><strong><em>'.$operation_done.'</em></strong></p>';
     }
     $output .='<br/>
-    <p style="text-align: justify;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;This certification is issued upon the request of the above-named mention '.$data->purpose.'.</p>
+    <p style="text-align: justify;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;This certification is issued upon the request of '.$data->reqper.', aboved-named '.$data->relto.' '.$data->purpose.'.</p>
     <br/>
     <p style="text-align: justify;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Given this '.\Carbon\Carbon::now()->format('l, jS \\of F Y').', Gov. Roque B. Ablan Sr. Memorial Hospital, Laoag City, Ilocos Norte, Philippines.</p>
     <br/><br/>
-    <p style="text-align: right;"><strong> DR. '.Getdoctorinfo($data->doctor).'</strong></p>
+    <p style="text-align: right;"><strong>'.Getdoctorinfo($data->doctor).'</strong></p>
 
     <p style="text-align: right;"><em>Attending Physician</em></p>
     <p style="text-align: right;">License No. <em>'.$data->doctor.'</em></p>

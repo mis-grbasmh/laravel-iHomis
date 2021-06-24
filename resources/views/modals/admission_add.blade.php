@@ -48,7 +48,7 @@
                 <label for="edit_dodate" class="control-label">
                 Admission Date and Time:<span class="required">*</span>
                 </label>
-                <input type="datetime-local" id="add_admdate" name="admdate" value="<?php echo date('Y-m-d'); ?>" class="form-control floating-label" step="any">
+                <input type="datetime-local" id="add_admdate" name="admdate" value="<?php echo date('Y-m-d\TH:i'); ?>" class="form-control floating-label" step="any">
                 <p class="edit_erroradmdate text-danger hidden"></p>
             </div>
             <div class="form-group">

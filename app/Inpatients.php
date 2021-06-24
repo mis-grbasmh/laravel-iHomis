@@ -71,6 +71,26 @@ Public Static function Inpatientlist($ward){
    return $results;
 }//inpatientlist
 
+Public Static function Inpatient_canceladmission($id){
+    $results = Inpatients::wherenull('disdate')->where('admstat','A')
+     ->join('hperson','hperson.hpatcode','hadmlog.hpercode')
+     ->join('hpatroom as A','A.enccode','hadmlog.enccode')
+     ->join('hbed','A.bdintkey','hbed.bdintkey')
+     ->join('hroom','hroom.rmintkey','A.rmintkey')
+     ->join('hward','hward.wardcode','A.wardcode' )
+     ->join('htypser','htypser.tscode','hadmlog.tscode')
+
+     ->select('hadmlog.enccode','hadmlog.hpercode','hadmlog.patage','hadmlog.admdate','hadmlog.licno','hadmlog.admclerk','hadmlog.admtxt','hadmlog.hsepriv','hperson.patsex','htypser.tsdesc','hward.wardname','hroom.rmname','hbed.bdname')
+     ->where('A.hprdate','=',DB::raw("(select max(hpatroom.hprdate) from hpatroom where hpatroom.enccode = A.enccode)"))
+     ->where('hadmlog.entryby',$id)
+     ->get();
+
+    //DB::raw("(select top(1) dietcode from hdocord as A where A.enccode = hadmlog.enccode and A.orcode='DIETT' order by A.dodate DESC) as breakfast"),
+
+     return $results;
+  }//inpatientlist
+
+
 Public Static function InpatientlistforDiet($ward){
 
    $data = Inpatients::wherenull('disdate')->where('admstat','A')

@@ -24,6 +24,10 @@ $accomodations = array(
         'ABSC'      =>  'Absconded',
         'EXPIR'     =>  'Expired'
     );
+
+   
+
+
 function getNewEmployeeNo(){
     $year = date('Y');
    // $result = \App\Employee::
@@ -41,7 +45,7 @@ Function getDietDesc($id){
 }
 
   function getPatientinfo($id=''){
-  
+
   if($id){
     $result = \App\Patients::where('hpatcode',$id)->first();
   }
@@ -50,14 +54,14 @@ Function getDietDesc($id){
         if(null===$result->patsuffix){
             return $result->patlast .", ". $result->patfirst ." ". $result->patmiddle;
         }else{
-      
+
             return $result->patlast." ".$result->patsuffix."., ". $result->patfirst ." ". $result->patmiddle;
-        
+
     }
 }else{
     return "No patient found";
 }
-    
+
 }//function getPatientinfo
 
 function getPatientAddress($id=''){
@@ -100,14 +104,14 @@ Function GetMSSType($id){
 
 
 function getPhicMember($id=''){
-   
+
     $result = DB::table('hpatcon')
     ->join('hphiclog','hphiclog.phicnum','hpatcon.memphicnum')
     ->where('hpatcon.enccode',$id)
     ->select('hphiclog.memlast','hphiclog.memfirst','hphiclog.memmid')
     ->first();
     if($result){
-   
+
     return $result->memlast .", ". $result->memfirst ." ".$result->memmid;
     }else{
         return '';
@@ -116,14 +120,14 @@ function getPhicMember($id=''){
  }//inpatientlist
 
 function Getdoctorinfo($id=''){
-   
+
     $result = DB::table('hpersonal')
     ->join('hprovider','hprovider.employeeid','=','hpersonal.employeeid')
     ->where('hprovider.licno',$id)
     ->select('hpersonal.lastname','hpersonal.firstname')
     ->first();
     if($result){
-   
+
     return $result->lastname .", ". $result->firstname;
     }else{
         return '';
@@ -134,7 +138,7 @@ function Getdoctorinfo($id=''){
 function Getemployeeinfo($id=''){
     $result = \App\Employees::where('employeeid',$id)->first();
         if ($result) {
-            return $result->lastname .", ". $result->firstname; 
+            return $result->lastname .", ". $result->firstname;
         }else{
             return $id;
         }
@@ -142,7 +146,7 @@ function Getemployeeinfo($id=''){
 
 function getLeaveType($leave_id)
     {
-       
+
 
         $result = \App\LeaveType::where('id', $leave_id)->first();
 
@@ -158,8 +162,8 @@ function getPatientAccountNo($id){
         }else{
             return '';
         }
-        
-        
+
+
 }
 
 function getItem_desc($itemcode,$chargecode){
@@ -176,7 +180,7 @@ function getItem_desc($itemcode,$chargecode){
         ->select('cl2desc')
         ->first();
     return $result->cl2desc;
-    
+
 
     }elseif($chargecode=='MISCE'){
         $result = DB::table('hmisc')
@@ -214,7 +218,7 @@ function getItem_desc($itemcode,$chargecode){
         $input='&6A2CÖ';
         // for($i=0;$i<strlen($input);$i+=2) $str .= chr(hexdec(substr($input,$i,2)));
         $str = mb_convert_encoding($input, "EUC-JP", "auto");
-       
+
     $raw1 = Trim($input);
     $key1 = Trim('advise');
     $key2 = $key1;
@@ -229,7 +233,7 @@ function getItem_desc($itemcode,$chargecode){
     Do {
         $key2 = $key2 ." ".$key1;
     }while (strLen($key2) < $llr);
-    
+
     $key1 = substr($key2, 1, $llr);
  for($i = 1; $i<$llr; $i++){
     $b = ord(substr($raw1, $i, 1));
@@ -237,13 +241,13 @@ function getItem_desc($itemcode,$chargecode){
        //  $k = ($b - $c) + 124;
          if($k >= 255){
             $k = $k - 256;
-        } 
-    
+        }
+
       $kc = Chr($k);
      $decode = $decode.$k."=".$kc." ";
      $s_enc = $s_enc . $kc;
     }
-    
+
      return substr($raw1, $i, 1);
     //  return $k;
     }
@@ -314,17 +318,17 @@ function passDecryption($input=''){
 //     Do {
 //         $key2 = $key2 + " " + $key1;
 //     }while (strLen($key2) < $llr);
-    
+
 //     $key1 = Mid($key2, 1, $llr);
-    
+
     // for($i = 1; $i<$llr; $i++){
     //     $b = Microsoft.VisualBasic.Asc(Mid($raw1, $i, 1));
     //     $c = Microsoft.VisualBasic.Asc(Mid($key1, $i, 1));
     //     $k = ($b - $c) + 124;
     //     if($k >= 255){
     //         $k = $k - 256;
-    //     } 
-            
+    //     }
+
     //     $kc = Convert.ToChar($k);
     //     $decode = $decode.$k."=".$kc." ";
         $s_enc = $s_enc + $kc;

@@ -58,7 +58,8 @@
                             <a href="#" class="nav-item dropdown-item">{{ __('You have 5 more tasks') }}</a>
                         </li>
                         <li class="nav-link">
-                            <a href="#" class="nav-item dropdown-item">{{ __('Your friend Michael is in town') }}</a>
+                            <a href="{{ route('system.cancelencounter') }} class="nav-item dropdown-item">{{ __('Cancel Admission') }}</a>
+
                         </li>
                         <li class="nav-link">
                             <a href="{{ route('roles.index')  }}" class="nav-item dropdown-item">{{ __('Manage Roles') }}</a>
@@ -69,6 +70,7 @@
                         <li class="nav-link">
                             <a href="{{ route('users.create')  }}" class="nav-item dropdown-item">{{ __('New User') }}</a>
                         </li>
+
                     </ul>
                 </li>
 

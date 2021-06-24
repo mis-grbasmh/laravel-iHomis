@@ -11,6 +11,10 @@
        overflow: hidden;
        text-overflow: ellipsis;
    }
+   a:hover {
+      cursor:pointer;
+    }
+
  </style>
     <div class="row">
         <div class="col-md-12">
@@ -302,6 +306,31 @@ $('#disdate').val(new Date().toLocaleString("sv-SE", {
     //  { "data": "diagnosis"},
 
 });
+
+$('#inpatientsTable').on('click','.btnViewRooms[data-viewrooms]',function(e){
+        e.preventDefault();
+        var id =$(this).data('id');
+         var res = id.split('/').join('-');
+              var url ='{{ route("patient.admissionrooms")}}';
+              //url = url.replace(':id', res);
+                $.ajax({
+                    url : url,
+                    type : 'GET',
+                    datatype : 'json',
+                    data:{query:res},
+                    error: function (errmsg) {
+                        alert('Unexpected Error');
+                        console.log(errmsg['responseText']);
+                        },
+                        success:function(data){
+                            var url ='{{ route("admission.admissionrooms")}}';
+                         //   document.location.href=url;
+                         window.location.href = url;
+                        }
+                    });
+    });//BTN-EDIT
+
+
 
 $('#inpatientsTable').on('click','.btnDischarge[data-discharge]',function(e){
         e.preventDefault();

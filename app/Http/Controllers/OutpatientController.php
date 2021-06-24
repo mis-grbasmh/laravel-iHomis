@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use App\Outpatient;
 use App\Servicetype;
 use App\Doctors;
@@ -47,6 +48,35 @@ class OutpatientController extends Controller
     ->with('accomodations',$this->accomodations);
 
     }
+
+    Public Function getdischargeinfo(Request $request){
+        if($request->ajax()){
+            $query = $request->get('query');
+           // die($query);
+            $data = Outpatient::where('id',$query)->first();
+
+            $isdiagexist = DB::table('hencdiag')->where('enccode',$data->enccode)
+            ->where('tdcode','FINDX')->first();
+                if($isdiagexist){
+                    $diagnosis = $isdiagexist->diagtext;
+                    $code = $isdiagexist->diagcode_ext;
+                }else{
+                    $diagnosis = '';
+                    $code = '';
+                }
+                return response()->json(
+                    [
+                        'enccode'        => $data->enccode,
+                        'hpercode'       => $data->hpercode,
+                        'patientname'    => getpatientinfo($data->hpercode),
+                        'licno'         => $data->licno,
+                        'code'      => $code,
+                        'diagnosis'      => $diagnosis
+                        // 'bed' => $bed
+                    ]
+                );//end response
+        }// if ajax request
+    }//end function
 
     public function recentlyvisited()
     {

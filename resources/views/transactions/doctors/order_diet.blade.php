@@ -43,17 +43,17 @@
             <form role="form" id="frmDietAdd">
                 <input type="text" id="enccode" name="enccode" value="{{$enccode}}">
                 <div class="form-group">
-                    <label for="edit_dodate" class="control-label">
+                    <label for="add_dodate" class="control-label">
                     Date and Time of Order:<span class="required">*</span>
                     </label>
-                    <input type="datetime-local" id="edit_dodate" name="dodate" class="form-control floating-label" step="any">
+                    <input type="datetime-local" id="add_dodate" name="dodate" value="<?php echo date('Y-m-d\TH:i'); ?>"  class="form-control floating-label" step="any">
                     <p class="edit_errordodate text-danger hidden"></p>
                 </div>
                 <div class="form-group">
                     <label for="edit_doctor" class="control-label">
                     Ordered By<span class="required">*</span>
                     </label>
-                    <select class="form-control" id="edit_licno" name="licno">
+                    <select class="form-control" id="add_licno" name="licno">
                     @foreach($doctors as $doctor)
                    <option value="{{ $doctor->licno }}"><strong>{{getdoctorinfo($doctor->licno)}}</strong></option>
                     @endforeach
@@ -64,7 +64,7 @@
 
                     <label><strong>Breakfast:</strong></label>
                     {{-- <select name="provider_id" id="input-provider" class="form-select2 form-control-alternative{{ $errors->has('provider_id') ? ' is-invalid' : '' }}" required> --}}
-                    <select class="form-control" id="edit_dietcode" name="dietcode" required>
+                    <select class="form-control" id="add_dietcode" name="dietcode" required>
                     @foreach($diettypes as $diettype)
                     <option value="{{$diettype->dietcode}}"><strong>{{getdietdesc($diettype->dietcode)}}</strong></option>
                     @endforeach
@@ -73,7 +73,7 @@
                 <div class="form-group">
                     <label><strong>Lunch:</strong></label>
                     {{-- <input type="text" class="form-control" id="edit_lunch">  --}}
-                    <select class="form-control" id="edit_dietlunch" name="dietlunch" required>
+                    <select class="form-control" id="add_dietlunch" name="dietlunch" required>
                     @foreach($diettypes as $diettype)
                     <option value="{{$diettype->dietcode}}"><strong>{{getdietdesc($diettype->dietcode)}}</strong></option>
                     @endforeach
@@ -81,7 +81,7 @@
                 </div>
                 <div class="form-group">
                     <label><strong>Supper:</strong></label>
-                    <select class="form-control" id="edit_dietdinner" name="dietdinner" required>
+                    <select class="form-control" id="add_dietdinner" name="dietdinner" required>
                     @foreach($diettypes as $diettype)
                     <option value="{{$diettype->dietcode}}"><strong>{{getdietdesc($diettype->dietcode)}}</strong></option>
                     @endforeach
@@ -89,24 +89,24 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="edit_remarks" class="control-label">
+                    <label for="remarks" class="control-label">
                     Diet Remarks<span class=""></span>
                     </label>
-                    <input type="text" class="form-control" id="edit_remarks" name="remarks">
+                    <input type="text" class="form-control" id="add_remarks" name="remarks">
                     <p class="edit_errorRemarks text-danger hidden"></p>
                 </div>
                 <div class="form-group">
                     <label for="edit_doctornotes" class="control-label">
                     Doctor Notes<span class="">*</span>
                     </label>
-                    <textarea class="form-control" id="edit_doctornotes" name="donotes"></textarea>
+                    <textarea class="form-control" id="add_doctornotes" name="donotes"></textarea>
                     <p class="edit_errordoctornotes text-danger hidden"></p>
                 </div>
                 <div class="form-group">
                     <label for="edit_doctornotes" class="control-label">
                         <label>Date and Time Posted<span class="">*</span>
                         </label>
-                        <input type="datetime-local" id="edit_dodtepost" name="dodtepost" class="form-control floating-label" step="any" required>
+                        <input type="datetime-local" id="add_dodtepost" value="<?php echo date('Y-m-d\TH:i'); ?>" name="dodtepost" class="form-control floating-label" step="any" required>
                     </div>
                 </div>
             </form>
@@ -131,7 +131,7 @@
             </div>
             <div class="modal-body">
             <form role="form" id="frmDietEdit">
-                <input type="text" class="form-control" id="edit_ID" name="edit_ID" disabled>
+                <input type="hidden" class="form-control" id="edit_ID" name="edit_ID" disabled>
                 <div class="form-group">
                     <label for="edit_dodate" class="control-label">
                     Date and Time of Order:<span class="required">*</span>
@@ -178,7 +178,7 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="edit_remarks" class="control-label">
+                    <label for="remarks" class="control-label">
                     Diet Remarks<span class=""></span>
                     </label>
                     <input type="text" class="form-control" id="edit_remarks" name="remarks">
@@ -347,17 +347,24 @@ $('#dietTable').on('click','.btnEdit[data-edit]',function(e){
                         $('#edit_dodate').val(data.dodate);
                         $('#edit_dodtepost').val(data.dodtepost);
                         $('#edit_licno').val(data.licno);
-                        $('#edit_dietcode2').val(data.dietcode);
-                        $('#edit_dietlunch').val(data.dietlunch);
-                        $('#edit_dietdinner').val(data.dietdinner);
                         $('#edit_remarks').val(data.remarks);
                         $('#edit_doctornotes').val(data.donotes);
                         $('#edit_dodtepost').val(data.dodtepost);
+                          $('#edit_dietcode').append('<option selected value=' + data.dietcode + '>' + data.breakfast + '</option>');
+                          $('#edit_dietlunch').append('<option selected value=' + data.dietlunch + '>' + data.lunch + '</option>');
+                          $('#edit_dietdinner').append('<option selected value=' + data.dietdinner + '>' + data.dinner + '</option>');
                         // $('.edit_errorName').addClass('hidden');
                         // $('.edit_errorContact').addClass('hidden');
                         // $('.edit_errorAddress').addClass('hidden');
                         // $('#mdlEditData').modal('show');
-                        $('#modalEditDiet').modal('show');
+                   //     $('#modalEditDiet').modal('show');
+
+                        $("#modalEditDiet").modal({
+                            backdrop: 'static',
+                            keyboard: false,
+                            show: true,
+                        });
+
                     }
 
                 });
@@ -452,8 +459,7 @@ $('#dietTable').on('click','.btnEdit[data-edit]',function(e){
 
         }else{
 
-        swal("Cancelled", "You Cancelled", "error");
-
+            swal("Cancelled", "You Cancelled", "error");
         }
 
         });

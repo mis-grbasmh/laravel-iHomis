@@ -148,7 +148,6 @@ public function patientcharges($id=''){
                      ->orderby('A.pcchrgdte','ASC')
                      ->paginate(10);
          $accountno = getPatientAccountNo($enccode);
-
         }else{
          $enccode='';
          $admdiagnosis='';
@@ -156,8 +155,6 @@ public function patientcharges($id=''){
          $patientcharges='';
          $hpercode='';
      }
-
-
          return view('transactions.patients.patientcharges',compact('patientcharges','enccode','hpercode','admdiagnosis','accountno'))
          ->with('costcenters',DB::table('hcostre')->where('crestat','A')->get())
          ->with('chargetypes',DB::table('hcharge')->where('chrgstat','A')->orderby('chrgdesc','ASC')->get())
@@ -926,6 +923,8 @@ function getPatient_nursesnotes(Request $request){
         }//end function
 
         //
+
+
         Public function get_provincebycitycode(Request $request){
             if($request->ajax())
             {

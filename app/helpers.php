@@ -65,7 +65,29 @@ use Illuminate\Support\Facades\DB;
         );
         return $data;
     }
+    Function RelationshipType($type){
+        $data = array(
+            'SELF'     => 'aboved-name person',
+            'HUSBA'     => 'Husband',
+            'MOTH'     => 'Mother',
+            'SPOU'     => 'Spouse',
+            'WIFE'     => 'Wife',
+            'SISTE'     => 'Sister',
+            'GNDCH'     => 'Grand Child',
+            'RELAT'     => 'Relative',
+            'AUNT'     => 'Aunt',
+            'DAUGH'     => 'Daugther',
+            'UNCLE'     => 'Uncle',
+            'SISTE'     => 'Sister'
+        );
+        if($type){
+            return $data[$type];
+        }else
+        {
+            return $data;
+        }
 
+    }
     Function ReasonforTransfer(){
        $data =  DB::table('herlog')->select('reftxt')->distinct('reftxt')->get();
        return $data;
@@ -321,6 +343,24 @@ if($id){
     }
     }//function getPhicProcedure
 
+
+    function getPatientname($id=''){
+        if($id){
+            $result = \App\Patients::where('hpatcode',$id)->first();
+        }
+
+        if($result){
+            if(null===$result->patsuffix){
+                return $result->patfirst ." ". $result->patmiddle." ".$result->patlast;
+            }else{
+
+                return $result->patfirst ." ". $result->patmiddle." ".$result->patlast." ".$result->patsuffix;
+
+            }
+        }else{
+            return "No patient found";
+        }
+    }//function getPatientinfo
 
 
 function getPatientinfo($id=''){

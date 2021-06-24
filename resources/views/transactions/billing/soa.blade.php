@@ -190,54 +190,49 @@
         @include('modals.patientcharges_add')
     </div>
 <script type="text/javascript">
-    $(document).ready(function () {
-        $('input[name="intervaltype"]').click(function () {
-            $(this).tab('show');
-            $(this).removeClass('active');
-        });
-    })
-    $(document).ready(function(){
-    // Display Modal
-        var  id = document.getElementById("enccode").value;
-        if(id==''){
-            $("#patientsearchModal").modal({
-                backdrop: 'static',
-                keyboard: false,
-                show: true,
-            });
-        }
-    });
+   $(document).ready(function(){
+                                       // Display Modal
+                                      var  id = document.getElementById("enccode").value;
+                                      if(id==''){
+                                          $("#patientsearchModal").modal({
+                                                              backdrop: 'static',
+                                                              keyboard: false,
+                                                              show: true,
+                                                              });
+                                      }
+                                      });
+                                      $('#tableitems tbody').on('click', 'td', function () {
 
-    $('#tableitems tbody').on('click', 'td', function () {
-        var currentRow=$(this).closest("tr");
-        var query=currentRow.find("td:eq(0)").text();
-        console.log(query)      //call t
-        $('#modalPatientSearch').modal('hide');
-        $('#tableItems').DataTable().destroy();
-        $('#history').modal('show');
-        if(query !=''){
-            // fetch_patient_history();
-            document.getElementById("hpercode").value = query;
-            var queryres = $('#hpercode').value;
-            $.ajax({
-                url:"{{ route('getPatient.history') }}",
-                method:'GET',
-                data:{query:query},
-                dataType:'json',
-                success:function(data)
-                {
-                    $('#history_table').html(data.table_data);
-                    $("#modalhistory").modal({
-                        backdrop: 'static',
-                        keyboard: false,
-                        show: true,
-                    });
-                    //$('#tableHistory').html(data.table_data);
-                    $('#total_history').text(data.total_data);
-                }
-            });
-        }
-    });
+                          var currentRow=$(this).closest("tr");
+                            var query=currentRow.find("td:eq(0)").text();
+                            //console.log(query)      //call t
+                            $('#modalPatientSearch').modal('hide');
+                            $('#tableItems').DataTable().destroy();
+                            $('#history').modal('show');
+                            if(query !=''){
+                                // fetch_patient_history();
+                               document.getElementById("hpercode").value = query;
+                               var queryres = $('#hpercode').value;
+                                    $.ajax({
+                                        url:"{{ route('getPatient.history') }}",
+                                        method:'GET',
+                                        data:{query:query},
+                                        dataType:'json',
+                                        success:function(data)
+                                        {
+                                                 $('#history_table').html(data.table_data);
+                                                // $('#history').modal('show');
+                                                 $("#modalhistory").modal({
+                                                backdrop: 'static',
+                                                keyboard: false,
+                                                show: true,
+                                                });
+                                                //$('#tableHistory').html(data.table_data);
+                                                $('#total_history').text(data.total_data);
+                                        }
+                                    });
+                             }
+                        });
 
                         $('#tableHistory tbody').on('click', 'tr', function () {
                                 var currentRow=$(this).closest("tr");
@@ -265,7 +260,7 @@
                             ]
                         } );
                     } );
-                    </script>
+</script>
 
 
 @endsection

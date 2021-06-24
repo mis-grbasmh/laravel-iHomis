@@ -62,12 +62,12 @@
                                 <p>Referral To</p>
                             </a>
                         </li>
-                        {{-- <li @if ($pageSlug == 'tstats') class="active " @endif>
-                            <a href="{{ route('transactions.stats')  }}">
+                        <li @if ($pageSlug == 'canceladmission') class="active " @endif>
+                            <a href="{{ route('admitting.canceladmission')  }}">
                                 <i class="tim-icons icon-chart-pie-36"></i>
-                                <p>Statistics</p>
+                                <p>Cancel Admission</p>
                             </a>
-                        </li> --}}
+                        </li>
                         {{-- <li @if ($pageSlug == 'transactions') class="active " @endif>
                             <a href="{{ route('transactions.index')  }}">
                                 <i class="tim-icons icon-bullet-list-67"></i>

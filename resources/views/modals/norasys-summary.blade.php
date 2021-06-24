@@ -51,7 +51,7 @@
                         <td style="text-align:center"><label><strong><span id="row_withcheque"></span></strong></label></td>
                         <td class="text-right"><label><strong><span id="withcheque"></span></strong></label></td>
                         <td class="td-actions text-right">
-                           
+
                             <button type="button" rel="tooltip" class="btn btn-info btn-sm btn-icon">
                                 <i class="tim-icons icon-bullet-list-67"></i>
                             </button>

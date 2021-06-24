@@ -99,6 +99,12 @@ Route::get('admission/dichargeinfo/{id?}',[
     'uses' => 'InpatientController@getdischargeinfo',
 ]);
 
+
+Route::get('opd/dichargeinfo/{id?}',[
+    'as' => 'opd.dischargeinfo',
+    'uses' => 'OutpatientController@getdischargeinfo',
+]);
+
 Route::GET('admission/update/{id?}',[
     'as' => 'admission.update',
     'uses' => 'InpatientController@update',
@@ -106,8 +112,13 @@ Route::GET('admission/update/{id?}',[
 
 Route::GET('admission/discharge/{id?}',[
     'as' => 'admission.discharge',
-    'uses' => 'InpatientController@discharge',
+    'uses' => 'InpatientController@discharge'
 ]);
+Route::GET('canceladmission',[
+    'as' => 'admitting.canceladmission',
+    'uses' => 'InpatientController@canceladmission',
+]);
+
 
 // Route::GET('admission/admissiondoctors/{id?}',[
 //     'as' => 'admission.admissiondoctors',
@@ -115,14 +126,20 @@ Route::GET('admission/discharge/{id?}',[
 // ]);
 
 
-Route::GET('admission/coversheet/{id?}',[
-    'as' => 'admission.coversheet',
+// Route::GET('admitting/coversheet/{id?}',[
+    Route::GET('admitting/coversheet/{id?}',[
+    'as' => 'admitting.coversheet',
     'uses' => 'InpatientController@coversheet_pdf',
 ]);
 
 Route::GET('admission/admissionslip/{id?}',[
     'as' => 'admission.admissionslip',
     'uses' => 'InpatientController@admissionslip_pdf',
+]);
+
+Route::GET('admitting/clinicalabstract/{id?}',[
+    'as' => 'admitting.clinicalabstract',
+    'uses' => 'InpatientController@clinicalabstract_pdf',
 ]);
 
 Route::GET('admission/print_inpatientslist',[
@@ -135,11 +152,17 @@ Route::GET('admission/admissiondoctors/{id?}',[
     'uses' => 'PatientController@patientdoctors',
 ]);
 
-// Route::GET('admission/admissionrooms/{id?}',[
-    Route::GET('admission/admissionrooms',[
+ Route::GET('admission/admissionrooms/{id?}',[
+    // Route::GET('admission/admissionrooms',[
     'as' => 'admission.admissionrooms',
     'uses' => 'InpatientController@Patient_rooms',
 ]);
+Route::GET('admission/rooms',[
+    // Route::GET('admission/admissionrooms',[
+    'as' => 'patient.admissionrooms',
+    'uses' => 'InpatientController@get_PatientRooms',
+]);
+
 
  //Route::GET('admission/add_doctor/{id?}',[
 Route::GET('admission/add_doctor/{id?}',[
@@ -224,6 +247,16 @@ Route::get('admitting/foradmission',[
     //     'uses' => 'ErpatientController@index',
     // ]);
 
+    Route::GET('anaimalbitelog/edit/{id?}',[
+        'as' => 'animalbitelog.edit',
+        'uses' => 'AnimalBiteController@animalbitelog_edit',
+    ]);
+
+    Route::GET('anaimalbite/form/{id?}',[
+        'as' => 'animalbite.form',
+        'uses' => 'AnimalBiteController@animalbite_pdf',
+    ]);
+
 
     Route::get('erpatient/discharge','ErpatientController@discharge')->name('erpatient.discharge');
 
@@ -244,11 +277,18 @@ Route::get('admitting/foradmission',[
     // ]);
 
 
-
+    //Dietetics Routes
     Route::get('/dietetics/{id}',[
         'as' => 'dietetics.show',
         'uses' => 'DieteticsController@index',
     ]);
+
+    Route::get('/dietetics/report/{id?}',[
+        'as' => 'dietetics.rptDietlist',
+        'uses' => 'DieteticsController@rptDietlist',
+    ]);
+
+
 
 
     //Patient Master
@@ -300,7 +340,7 @@ Route::get('admitting/foradmission',[
         'uses' => 'DieteticsController@update'
     ]);
 
-    Route::GET('dietorder/diet_add/{id?}',[
+    Route::POST('dietorder/diet_add/{id?}',[
         'as'=>'dietorder.diet_add',
         'uses' => 'DieteticsController@diet_add'
     ]);
@@ -444,6 +484,8 @@ Route::get('medicalrecords/codediagnosis',
 
 });
 
+    //Administrator Route
+    Route::get('/system/cancelencounter', 'SystemController@cancel_encounter')->name('system.cancelencounter');
 
    Route::get('/getPatienthistory/patient', 'PatientController@getPatient_history')->name('getPatient.history');
    //Doctors Module

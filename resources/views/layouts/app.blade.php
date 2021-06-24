@@ -33,10 +33,11 @@
 
         <link href="{{ asset('assets') }}/css/buttons.dataTables.min.css" rel="stylesheet" />
         <script src="{{asset('sweetalert/sweetalert.min.js')}}" type="text/javascript" charset="utf-8" async defer></script>
-
-
-
-
+        <style type="text/css">
+            a:hover {
+              cursor:pointer;
+            }
+          </style>
     </head>
     <body class="white-content {{ $class ?? '' }}">
         @auth()
